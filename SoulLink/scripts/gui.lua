@@ -169,6 +169,7 @@ local function create_list_row(parent, anchor, player_data, is_header, indent)
             type = "textfield",
             name = NAMES.rename_textfield,
             text = current_text,
+            icon_selector = true, -- [新增] 原生图标选择器
             tags = { anchor_id = anchor.id }, -- 方便回车事件获取 ID
         })
         textfield.style.horizontally_stretchable = true
@@ -237,45 +238,73 @@ local function update_list_view(frame, player)
     local player_data = State.get_player_data(player.index)
     local all_anchors = State.get_all()
 
-    -- [新增] 1. 获取搜索框文本
+    -- [步骤 1] 获取搜索文本
     local search_text = ""
-    -- 先尝试找到标题栏，再找里面的输入框
     local titlebar = find_element_by_name(frame, NAMES.titlebar)
     if titlebar and titlebar[NAMES.search_textfield] then
         search_text = titlebar[NAMES.search_textfield].text
-        -- 转为小写，实现不区分大小写的搜索
         search_text = string.lower(search_text)
     end
 
-    -- 数据分组
+    -- [步骤 2] 预处理：找出哪些地表(Surface)包含匹配项
+    -- 这样我们才知道是否要强制显示该地表的方尖碑
+    local surfaces_with_match = {}
+
+    if search_text ~= "" then
+        for _, data in pairs(all_anchors) do
+            local is_match = false
+            if type(data.name) == "string" then
+                if string.find(string.lower(data.name), search_text, 1, true) then
+                    is_match = true
+                end
+            elseif type(data.name) == "table" and data.id then
+                if string.find(tostring(data.id), search_text, 1, true) then
+                    is_match = true
+                end
+            end
+
+            if is_match then
+                surfaces_with_match[data.surface_index] = true
+            end
+        end
+    end
+
+    -- [步骤 3] 数据分组与最终过滤
     local favorites = {}
     local surface_map = {}
 
     for _, data in pairs(all_anchors) do
-        -- [新增] 2. 搜索匹配判断
         local match = true
 
-        -- 只有当搜索框有内容时才进行过滤
+        -- 只有在搜索模式下才进行过滤
         if search_text ~= "" then
-            match = false -- 默认为不匹配
+            match = false
 
+            -- 判断自身是否匹配
+            local self_match = false
             if type(data.name) == "string" then
-                -- 如果名字是字符串（改过名的），检查是否包含搜索词
                 if string.find(string.lower(data.name), search_text, 1, true) then
-                    match = true
+                    self_match = true
                 end
             elseif type(data.name) == "table" and data.id then
-                -- 如果名字是默认的本地化表（如 {"name", id}），则搜索 ID
                 if string.find(tostring(data.id), search_text, 1, true) then
-                    match = true
+                    self_match = true
                 end
+            end
+
+            -- 逻辑核心：
+            -- 1. 如果自己匹配，当然显示
+            if self_match then
+                match = true
+            -- 2. 如果自己是方尖碑(obelisk)，且它的地表里有别的匹配项(surfaces_with_match)，也要强制显示！
+            --    不然组头没了，孩子们也显示不出来。
+            elseif data.type == Config.Names.obelisk and surfaces_with_match[data.surface_index] then
+                match = true
             end
         end
 
-        -- [新增] 3. 只有匹配成功才加入列表
         if match then
-            -- --- 下面是原来的分组逻辑 (被包裹在 if match then 里) ---
-
+            -- 加入列表 (原逻辑)
             if player_data.favorites and player_data.favorites[data.id] then
                 table.insert(favorites, data)
             end
@@ -290,8 +319,6 @@ local function update_list_view(frame, player)
             else
                 table.insert(surface_map[s].pylons, data)
             end
-
-            -- --- 原有逻辑结束 ---
         end
     end
 
@@ -317,7 +344,9 @@ local function update_list_view(frame, player)
         if group.obelisk then
             create_list_row(scroll, group.obelisk, player_data, true, false)
 
-            if player_data.expanded_surfaces and player_data.expanded_surfaces[s] then
+            -- 如果有搜索文本，或者玩家手动展开了，都算展开
+            local force_expand = (search_text ~= "")
+            if force_expand or (player_data.expanded_surfaces and player_data.expanded_surfaces[s]) then
                 table.sort(group.pylons, sort_anchors)
                 if #group.pylons > 0 then
                     local sub_flow = scroll.add({ type = "flow", direction = "vertical", style_mods = { left_margin = 0 } })
