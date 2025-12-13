@@ -38,6 +38,9 @@ end)
 -- [GUI 点击] 转发给 GUI 模块处理
 script.on_event(defines.events.on_gui_click, GUI.handle_click)
 
+-- [新增] 监听文本输入 (用于实时搜索)
+script.on_event(defines.events.on_gui_text_changed, GUI.handle_search)
+
 -- [GUI 确认] (输入框回车) 转发给 GUI 模块处理
 script.on_event(defines.events.on_gui_confirmed, GUI.handle_confirm)
 

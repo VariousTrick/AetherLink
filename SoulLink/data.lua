@@ -107,20 +107,20 @@ local technology = {
     icon_size = 256,
     icon = "__SoulLink__/graphics/icon/shortcut.png",
     effects = {
-        {type = "unlock-recipe", recipe = NAME_OBELISK},
-        {type = "unlock-recipe", recipe = NAME_PYLON}
+        { type = "unlock-recipe", recipe = NAME_OBELISK },
+        { type = "unlock-recipe", recipe = NAME_PYLON },
     },
     unit = {
         count = 100,
         ingredients = {
-            {"automation-science-pack", 1},
-            {"logistic-science-pack", 1}
+            { "automation-science-pack", 1 },
+            { "logistic-science-pack", 1 },
         },
-        time = 15
+        time = 15,
     },
     -- [修改] 改为最基础的电子学，防止报错
-    prerequisites = {"electronics"}, 
-    order = "z-a"
+    prerequisites = { "electronics" },
+    order = "z-a",
 }
 
 -- 7. 扩展数据
@@ -133,4 +133,12 @@ data:extend({
     recipe_obelisk,
     recipe_pylon,
     technology,
+
+    -- [关键] 确保这些 Sprite 定义在这里
+    { type = "sprite", name = "soullink-icon-pin", filename = "__SoulLink__/graphics/icon/pin.png", width = 200, height = 200, scale = 0.16 },
+    { type = "sprite", name = "soullink-icon-search", filename = "__SoulLink__/graphics/icon/search.png", width = 200, height = 200, scale = 0.16 },
+    { type = "sprite", name = "soullink-icon-teleport", filename = "__SoulLink__/graphics/icon/teleport.png", width = 200, height = 200, scale = 0.16 },
+    { type = "sprite", name = "soullink-icon-star", filename = "__SoulLink__/graphics/icon/star.png", width = 200, height = 200, scale = 0.16 },
+    { type = "sprite", name = "soullink-icon-notstar", filename = "__SoulLink__/graphics/icon/notstar.png", width = 200, height = 200, scale = 0.16 },
+    { type = "sprite", name = "soullink-icon-rename", filename = "__SoulLink__/graphics/icon/rename.png", width = 200, height = 200, scale = 0.16 },
 })
