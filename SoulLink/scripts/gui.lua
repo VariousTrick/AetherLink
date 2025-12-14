@@ -37,7 +37,9 @@ local NAMES = {
     btn_fav = "soullink_fav_",
     btn_select = "soullink_sel_",
     btn_edit = "soullink_edit_",
+    btn_gps = "soullink_gps_", -- [新增] GPS 按钮
     btn_teleport = "soullink_tp_",
+    btn_fold = "soullink_fold_", -- [新增] 折叠按钮
 }
 
 -- ============================================================================
@@ -93,280 +95,271 @@ local function update_detail_pane(frame, anchor_id)
     end
 end
 
---- [左侧] 创建列表的一行
-local function create_list_row(parent, anchor, player_data, is_header, indent)
+-- [重写] 添加表格行 (原生工具栏风格: 20px)
+local function add_table_row(table_elem, anchor, player_data)
+    local ROW_SIZE = 28
+
+    -- 图标按钮样式：使用原生 frame_action_button，它是专门为 20px 设计的
+    local icon_style = "frame_action_button"
+    local icon_mods = { width = ROW_SIZE, height = ROW_SIZE, padding = 0, margin = 0 }
+
+    -- 名字栏样式：保持深色背景，但压扁高度
+    local name_mods = { height = ROW_SIZE, top_padding = 0, bottom_padding = 0, margin = 0 }
+
+    -- 1. 第一列：收藏按钮 (Star)
     local is_fav = player_data.favorites and player_data.favorites[anchor.id]
-    local s_idx = anchor.surface_index
-    local is_expanded = player_data.expanded_surfaces and player_data.expanded_surfaces[s_idx]
+    local fav_sprite = is_fav and "soullink-icon-star" or "soullink-icon-notstar"
 
-    -- [视觉优化] 容器选择
-    -- 标题行(Header)使用带背景的 frame，子行使用透明 flow
-    local row
-    if is_header then
-        -- 使用 subheader_frame 创建明显的分割条效果 (深色背景)
-        row = parent.add({
-            type = "frame",
-            style = "subheader_frame",
-            direction = "horizontal",
-        })
-        row.style.horizontally_stretchable = true
-        row.style.padding = 2
-        row.style.bottom_margin = 2
-    else
-        -- 普通行保持透明
-        row = parent.add({
-            type = "flow",
-            direction = "horizontal",
-            style_mods = { vertical_align = "center", bottom_margin = 0 },
-        })
-        row.style.horizontally_stretchable = true
-    end
-
-    -- 1. 折叠箭头 (使用本地化 Tooltip)
-    if is_header then
-        local sprite = is_expanded and "utility/dropdown" or "utility/play"
-        local tooltip = is_expanded and { "gui.soullink-collapse" } or { "gui.soullink-expand" }
-        row.add({
-            type = "sprite-button",
-            name = NAMES.btn_expand .. s_idx,
-            sprite = sprite,
-            style = "frame_action_button",
-            tags = { surface_index = s_idx },
-            tooltip = tooltip,
-        })
-    else
-        row.add({ type = "empty-widget", style_mods = { width = 28 } })
-    end
-
-    if indent then
-        row.add({ type = "label", caption = "└", style_mods = { font_color = { 0.5, 0.5, 0.5 }, right_margin = 4 } })
-    end
-
-    -- 2. 收藏按钮 (修改：使用星星和非星星图标)
-    local fav_sprite = is_fav and "soullink-icon-star" or "soullink-icon-notstar" -- [修改]
-    local fav_tooltip = is_fav and { "gui.soullink-unfavorite" } or { "gui.soullink-favorite" }
-    row.add({
+    table_elem.add({
         type = "sprite-button",
-        name = NAMES.btn_fav,
-        sprite = fav_sprite, -- [修改] 引用变量
-        style = "frame_action_button",
+        name = NAMES.btn_fav .. anchor.id,
+        sprite = fav_sprite,
+        style = icon_style, -- [修改] 使用原生小按钮样式
+        style_mods = icon_mods,
         tags = { anchor_id = anchor.id },
-        tooltip = fav_tooltip,
-        -- toggled = is_fav, -- [删除] 不再需要 toggled 样式，直接换图
+        tooltip = is_fav and { "gui.soullink-unfavorite" } or { "gui.soullink-favorite" },
     })
 
-    -- [修复] 检查当前行是否处于编辑模式
+    -- 2. 第二列：名字 (Name)
     local is_editing = player_data.editing_anchor_id == anchor.id
 
     if is_editing then
-        -- === 编辑模式：显示输入框和确认钩子 ===
-
-        -- 准备初始文本 (如果是默认名字的 table，则显示为空，如果是自定义名字 string，则显示原名)
+        -- 编辑框
         local current_text = (type(anchor.name) == "string") and anchor.name or ""
-
-        -- 输入框
-        local textfield = row.add({
+        local textfield = table_elem.add({
             type = "textfield",
-            name = NAMES.rename_textfield,
+            name = NAMES.rename_textfield .. anchor.id,
             text = current_text,
-            icon_selector = true, -- [新增] 原生图标选择器
-            tags = { anchor_id = anchor.id }, -- 方便回车事件获取 ID
+            icon_selector = true,
+            tags = { anchor_id = anchor.id },
         })
         textfield.style.horizontally_stretchable = true
-        textfield.style.minimal_width = 100
-        textfield.focus() -- 自动聚焦
-
-        -- 确认按钮 (打钩)
-        row.add({
-            type = "sprite-button",
-            name = NAMES.rename_confirm,
-            sprite = "utility/check_mark", -- 使用原版打钩图标
-            style = "frame_action_button",
-            tags = { anchor_id = anchor.id },
-            tooltip = "确认改名",
-        })
+        textfield.style.height = ROW_SIZE
+        textfield.style.margin = 0
+        textfield.focus()
     else
-        -- === 正常模式：显示名字按钮和铅笔 ===
-
-        -- 3. 名字按钮 (原代码)
-        local name_btn = row.add({
+        -- 名字按钮 (统一为原生工具栏按钮样式)
+        local name_btn = table_elem.add({
             type = "button",
-            name = NAMES.btn_select,
+            name = NAMES.btn_select .. anchor.id,
             caption = anchor.name,
             style = "list_box_item",
             tags = { anchor_id = anchor.id },
             mouse_button_filter = { "left" },
         })
         name_btn.style.horizontally_stretchable = true
-        name_btn.style.horizontal_align = "left"
-        if is_header then
-            name_btn.style.font = "default-bold"
+        name_btn.style.horizontal_align = "left" -- 保持左对齐
+        name_btn.style.font_color = { 1, 1, 1 }
+
+        -- 应用高度修正
+        for k, v in pairs(name_mods) do
+            name_btn.style[k] = v
         end
 
-        -- 4. 改名按钮 (原代码，图标已替换)
-        row.add({
+        -- [新增] 增加一点左内边距，让文字不要紧贴边缘
+        name_btn.style.left_padding = 4
+    end
+
+    -- 3. 第三列：改名/确认
+    if is_editing then
+        table_elem.add({
             type = "sprite-button",
-            name = NAMES.btn_edit,
-            sprite = "soullink-icon-rename", -- 确保这里用的是新图标
-            style = "frame_action_button",
+            name = NAMES.rename_confirm .. anchor.id,
+            sprite = "utility/check_mark",
+            style = icon_style, -- [修改] 原生小按钮
+            style_mods = icon_mods,
+            tags = { anchor_id = anchor.id },
+            tooltip = "确认改名",
+        })
+    else
+        table_elem.add({
+            type = "sprite-button",
+            name = NAMES.btn_edit .. anchor.id,
+            sprite = "soullink-icon-rename",
+            style = icon_style, -- [修改] 原生小按钮
+            style_mods = icon_mods,
             tags = { anchor_id = anchor.id },
             tooltip = { "gui.soullink-rename" },
         })
     end
 
-    -- 5. 传送小按钮
-    row.add({
+    -- 4. 第四列：GPS
+    local surface_name = "Unknown"
+    if game.surfaces[anchor.surface_index] then
+        surface_name = game.surfaces[anchor.surface_index].name
+    end
+    local gps_tag = string.format("[gps=%d,%d,%s]", anchor.position.x, anchor.position.y, surface_name)
+
+    table_elem.add({
         type = "sprite-button",
-        name = NAMES.btn_teleport,
-        sprite = "soullink-icon-teleport", -- [修改] 替换图标
-        style = "frame_action_button",
+        name = NAMES.btn_gps .. anchor.id,
+        sprite = "utility/center",
+        style = icon_style, -- [修改] 原生小按钮
+        style_mods = icon_mods,
+        tags = { gps_string = gps_tag },
+        tooltip = "发送位置",
+    })
+
+    -- 5. 第五列：传送
+    table_elem.add({
+        type = "sprite-button",
+        name = NAMES.btn_teleport .. anchor.id,
+        sprite = "soullink-icon-teleport",
+        style = icon_style, -- [修改] 原生小按钮
+        style_mods = icon_mods,
         tags = { anchor_id = anchor.id },
         tooltip = { "gui.soullink-teleport" },
     })
 end
-
---- 刷新左侧列表 (V9版逻辑保持不变)
 local function update_list_view(frame, player)
     local scroll = find_element_by_name(frame, NAMES.left_scroll)
     if not scroll then
-        Config.log("GUI 错误: 未找到滚动列表容器。")
         return
     end
-
     scroll.clear()
 
     local player_data = State.get_player_data(player.index)
     local all_anchors = State.get_all()
 
-    -- [步骤 1] 获取搜索文本
+    -- 搜索逻辑 (不变)
     local search_text = ""
     local titlebar = find_element_by_name(frame, NAMES.titlebar)
     if titlebar and titlebar[NAMES.search_textfield] then
-        search_text = titlebar[NAMES.search_textfield].text
-        search_text = string.lower(search_text)
+        search_text = string.lower(titlebar[NAMES.search_textfield].text)
     end
 
-    -- [步骤 2] 预处理：找出哪些地表(Surface)包含匹配项
-    -- 这样我们才知道是否要强制显示该地表的方尖碑
-    local surfaces_with_match = {}
+    local favorites_list = {}
+    local grouped_data = {}
+    local has_any = false
 
-    if search_text ~= "" then
-        for _, data in pairs(all_anchors) do
-            local is_match = false
-            if type(data.name) == "string" then
-                if string.find(string.lower(data.name), search_text, 1, true) then
-                    is_match = true
-                end
-            elseif type(data.name) == "table" and data.id then
-                if string.find(tostring(data.id), search_text, 1, true) then
-                    is_match = true
-                end
-            end
-
-            if is_match then
-                surfaces_with_match[data.surface_index] = true
-            end
-        end
-    end
-
-    -- [步骤 3] 数据分组与最终过滤
-    local favorites = {}
-    local surface_map = {}
-
-    for _, data in pairs(all_anchors) do
+    for _, anchor in pairs(all_anchors) do
         local match = true
-
-        -- 只有在搜索模式下才进行过滤
         if search_text ~= "" then
             match = false
-
-            -- 判断自身是否匹配
-            local self_match = false
-            if type(data.name) == "string" then
-                if string.find(string.lower(data.name), search_text, 1, true) then
-                    self_match = true
-                end
-            elseif type(data.name) == "table" and data.id then
-                if string.find(tostring(data.id), search_text, 1, true) then
-                    self_match = true
-                end
-            end
-
-            -- 逻辑核心：
-            -- 1. 如果自己匹配，当然显示
-            if self_match then
+            if type(anchor.name) == "string" and string.find(string.lower(anchor.name), search_text, 1, true) then
                 match = true
-            -- 2. 如果自己是方尖碑(obelisk)，且它的地表里有别的匹配项(surfaces_with_match)，也要强制显示！
-            --    不然组头没了，孩子们也显示不出来。
-            elseif data.type == Config.Names.obelisk and surfaces_with_match[data.surface_index] then
+            end
+            if type(anchor.name) == "table" and string.find(tostring(anchor.id), search_text, 1, true) then
                 match = true
             end
         end
 
         if match then
-            -- 加入列表 (原逻辑)
-            if player_data.favorites and player_data.favorites[data.id] then
-                table.insert(favorites, data)
+            has_any = true
+            if player_data.favorites and player_data.favorites[anchor.id] then
+                table.insert(favorites_list, anchor)
             end
-
-            local s = data.surface_index
-            if not surface_map[s] then
-                surface_map[s] = { pylons = {} }
+            local s_idx = anchor.surface_index
+            if not grouped_data[s_idx] then
+                local s_name = game.surfaces[s_idx] and game.surfaces[s_idx].name or ("Surface #" .. s_idx)
+                grouped_data[s_idx] = { name = s_name, anchors = {} }
             end
-
-            if data.type == Config.Names.obelisk then
-                surface_map[s].obelisk = data
-            else
-                table.insert(surface_map[s].pylons, data)
-            end
+            table.insert(grouped_data[s_idx].anchors, anchor)
         end
     end
 
-    -- 渲染收藏夹
-    if #favorites > 0 then
-        scroll.add({ type = "label", caption = "★ 特别关注", style = "caption_label" })
-        table.sort(favorites, sort_anchors)
-        for _, anchor in ipairs(favorites) do
-            create_list_row(scroll, anchor, player_data, false, false)
-        end
-        scroll.add({ type = "line", style_mods = { top_margin = 5, bottom_margin = 5 } })
+    if not has_any then
+        scroll.add({ type = "label", caption = { "gui.soullink-no-anchors" }, style_mods = { font_color = { 0.5, 0.5, 0.5 } } })
+        return
     end
 
-    -- 渲染地表树
+    -- 渲染 A：特别关注
+    if #favorites_list > 0 then
+        local fav_frame = scroll.add({
+            type = "frame",
+            style = "inside_shallow_frame",
+            direction = "vertical",
+        })
+        fav_frame.style.horizontally_stretchable = true
+        fav_frame.style.bottom_margin = 8
+
+        local header = fav_frame.add({ type = "flow", direction = "horizontal" })
+        header.style.vertical_align = "center"
+        header.style.bottom_margin = 4
+        header.add({ type = "sprite", sprite = "soullink-icon-star", style_mods = { width = 20, height = 20, stretch_image_to_widget_size = true } })
+        header.add({ type = "label", caption = { "gui.soullink-favorites" }, style = "caption_label" })
+
+        local fav_table = fav_frame.add({
+            type = "table",
+            column_count = 5,
+            style = "table", -- [重要] 改用基础表格样式，消除缝隙
+        })
+        fav_table.style.horizontally_stretchable = true
+        fav_table.style.horizontal_spacing = 0
+        fav_table.style.vertical_spacing = 0 -- 消除行间距，如果不喜欢连太紧，可以改回 1
+        fav_table.style.column_alignments[2] = "left"
+
+        table.sort(favorites_list, function(a, b)
+            return a.id < b.id
+        end)
+        for _, anchor in ipairs(favorites_list) do
+            add_table_row(fav_table, anchor, player_data)
+        end
+    end
+
+    -- 渲染 B：地表分组
     local s_idxs = {}
-    for k in pairs(surface_map) do
+    for k in pairs(grouped_data) do
         table.insert(s_idxs, k)
     end
     table.sort(s_idxs)
 
-    for _, s in ipairs(s_idxs) do
-        local group = surface_map[s]
-        if group.obelisk then
-            create_list_row(scroll, group.obelisk, player_data, true, false)
+    for _, s_idx in ipairs(s_idxs) do
+        local group = grouped_data[s_idx]
 
-            -- 如果有搜索文本，或者玩家手动展开了，都算展开
-            local force_expand = (search_text ~= "")
-            if force_expand or (player_data.expanded_surfaces and player_data.expanded_surfaces[s]) then
-                table.sort(group.pylons, sort_anchors)
-                if #group.pylons > 0 then
-                    local sub_flow = scroll.add({ type = "flow", direction = "vertical", style_mods = { left_margin = 0 } })
-                    sub_flow.style.horizontally_stretchable = true
-                    for _, pylon in ipairs(group.pylons) do
-                        create_list_row(sub_flow, pylon, player_data, false, true)
-                    end
-                else
-                    scroll.add({ type = "label", caption = "(无中继节点)", style_mods = { font_color = { 0.5, 0.5, 0.5 }, left_margin = 40 } })
-                end
+        local group_frame = scroll.add({
+            type = "frame",
+            style = "inside_shallow_frame",
+            direction = "vertical",
+        })
+        group_frame.style.horizontally_stretchable = true
+        group_frame.style.bottom_margin = 8
+
+        local header = group_frame.add({ type = "flow", direction = "horizontal" })
+        header.style.vertical_align = "center"
+        header.style.bottom_margin = 4
+
+        local is_collapsed = player_data.collapsed_surfaces and player_data.collapsed_surfaces[s_idx]
+        if search_text ~= "" then
+            is_collapsed = false
+        end
+
+        local sprite = is_collapsed and "utility/play" or "utility/dropdown"
+        header.add({
+            type = "sprite-button",
+            name = NAMES.btn_fold,
+            sprite = sprite,
+            style = "frame_action_button", -- 这个样式和下面列表里的按钮一致了
+            style_mods = { width = 20, height = 20, padding = 0 },
+            tags = { surface_index = s_idx },
+            tooltip = is_collapsed and "展开" or "折叠",
+        })
+
+        header.add({
+            type = "label",
+            caption = group.name,
+            style = "caption_label",
+        }).style.font = "default-bold"
+
+        if not is_collapsed then
+            local group_table = group_frame.add({
+                type = "table",
+                column_count = 5,
+                style = "table", -- [重要] 改用基础表格样式
+            })
+            group_table.style.horizontally_stretchable = true
+            group_table.style.horizontal_spacing = 0
+            group_table.style.vertical_spacing = 0
+            group_table.style.column_alignments[2] = "left"
+
+            table.sort(group.anchors, function(a, b)
+                return a.id < b.id
+            end)
+
+            for _, anchor in ipairs(group.anchors) do
+                add_table_row(group_table, anchor, player_data)
             end
         end
-    end
-
-    -- 默认选中逻辑
-    local current_group = surface_map[player.surface.index]
-    if current_group and current_group.obelisk then
-        -- 仅当首次打开且没有操作时，更新右侧 (这里简化为总是尝试更新默认)
-        -- 注意：如果玩家正在看别的，这里可能会强制切回，但对于 V9 逻辑这是可接受的默认行为
-        update_detail_pane(frame, current_group.obelisk.id)
     end
 end
 
@@ -520,6 +513,21 @@ function GUI.handle_click(event)
         return
     end
 
+    -- [新增] 折叠/展开地表
+    if name == NAMES.btn_fold then
+        local s_idx = element.tags.surface_index
+        if not p_data.collapsed_surfaces then
+            p_data.collapsed_surfaces = {}
+        end
+
+        -- 切换状态
+        p_data.collapsed_surfaces[s_idx] = not p_data.collapsed_surfaces[s_idx]
+
+        -- 刷新
+        update_list_view(frame, player)
+        return
+    end
+
     -- [新增] 搜索按钮逻辑
     if name == NAMES.search_btn then
         -- 切换状态
@@ -542,20 +550,29 @@ function GUI.handle_click(event)
         end
         return
     end
-    --[[     local p_data = State.get_player_data(player.index) -- 获取玩家数据 ]]
 
-    -- [修改] 改名确认 (点击钩子)
-    if name == NAMES.rename_confirm then
-        -- 找到旁边的文本框
-        -- 结构: row -> [..., textfield, confirm_btn, ...]
-        -- textfield 是 confirm_btn 的前一个兄弟元素
-        local textfield = element.parent[NAMES.rename_textfield]
-        if textfield and element.tags.anchor_id then
-            State.set_anchor_name(element.tags.anchor_id, textfield.text)
-            p_data.editing_anchor_id = nil -- [关键] 退出编辑模式
-            if frame then
-                update_list_view(frame, player)
-            end
+    -- [修改] 改名确认：使用 string.find
+    if string.find(name, NAMES.rename_confirm) then
+        -- 注意：因为现在 textfield 的名字也带ID了，所以获取兄弟元素要小心
+        -- 既然我们已经在 tags 里存了 ID，我们可以直接去 Table 里找
+        -- 但最简单的方法是：触发 handle_confirm，我们稍后处理回车逻辑
+        -- 这里我们利用 textfield 的名字规律
+        local anchor_id = element.tags.anchor_id
+        -- 找到那个特定的 textfield
+        local textfield_name = NAMES.rename_textfield .. anchor_id
+
+        -- element.parent 是那个 flow，textfield 在 element.parent.parent (table) 里
+        -- 这样找太麻烦。我们直接利用 element.tags.anchor_id
+        -- 更好的办法是：遍历 parent.parent.children 找到那个名字。
+
+        -- 但是，实际上 Factorio 的 textfield 改动不需要点击确认，回车就行。
+        -- 如果非要点钩子，我们需要找到那个输入框的文本。
+        -- 简单方案：从 element.parent (flow) 往上找 table，再找 textfield
+        local table_elem = element.parent.parent
+        if table_elem[textfield_name] then
+            State.set_anchor_name(anchor_id, table_elem[textfield_name].text)
+            p_data.editing_anchor_id = nil
+            update_list_view(frame, player)
         end
         return
     end
@@ -565,12 +582,19 @@ function GUI.handle_click(event)
         return
     end
 
-    -- 修改传送逻辑 (检查固定状态)
-    if name == NAMES.btn_teleport then
+    -- [修改] GPS 按钮：使用 string.find
+    if string.find(name, NAMES.btn_gps) then
+        if element.tags.gps_string then
+            player.print(element.tags.gps_string)
+        end
+        return
+    end
+
+    -- [修改] 传送按钮：使用 string.find
+    if string.find(name, NAMES.btn_teleport) then
         local anchor = State.get_by_id(element.tags.anchor_id)
         if anchor then
             player.teleport(anchor.position, anchor.surface_index)
-            -- [修改] 如果没有固定，才关闭
             if not p_data.is_pinned then
                 GUI.close_window(player)
             end
@@ -596,10 +620,9 @@ function GUI.handle_click(event)
         return
     end
 
-    -- 收藏
+    -- [修改] 收藏按钮：使用 string.find
     if string.find(name, NAMES.btn_fav) then
         local id = element.tags.anchor_id
-        local p_data = State.get_player_data(player.index)
         if not p_data.favorites then
             p_data.favorites = {}
         end
@@ -608,11 +631,9 @@ function GUI.handle_click(event)
         return
     end
 
-    -- [修改] 打开改名 (点击铅笔)
+    -- [修改] 改名按钮：使用 string.find
     if string.find(name, NAMES.btn_edit) then
-        -- 设置当前正在编辑的 ID
         p_data.editing_anchor_id = element.tags.anchor_id
-        -- 刷新列表，该行会自动变成输入框
         update_list_view(frame, player)
         return
     end
@@ -620,7 +641,8 @@ end
 
 -- 确认事件 (改名框回车)
 function GUI.handle_confirm(event)
-    if event.element.name == NAMES.rename_textfield then
+    -- [修改] 使用 string.find 匹配输入框名字
+    if string.find(event.element.name, NAMES.rename_textfield) then
         local player = game.get_player(event.player_index)
         local frame = player.gui.screen[Config.Names.main_frame]
         local anchor_id = event.element.tags.anchor_id
@@ -629,7 +651,7 @@ function GUI.handle_confirm(event)
             State.set_anchor_name(anchor_id, event.element.text)
 
             local p_data = State.get_player_data(player.index)
-            p_data.editing_anchor_id = nil -- [关键] 退出编辑模式
+            p_data.editing_anchor_id = nil -- 退出编辑模式
 
             if frame then
                 update_list_view(frame, player)
