@@ -18,14 +18,14 @@ Config.DEBUG = true
 
 Config.Names = {
 	-- 快捷栏按钮 (Shortcut) 的名称，必须与 data.lua 中定义的一致
-	shortcut = "soullink-shortcut",
+	shortcut = "aetherlink-shortcut",
 
 	-- 主窗口 GUI 的名称 (用于唯一标识窗口)
-	main_frame = "soullink_main_frame",
+	main_frame = "aetherlink_main_frame",
 
 	-- 两个核心实体的名称 (预留)
-	obelisk = "soullink-obelisk", -- 主建筑：方尖碑
-	pylon = "soullink-pylon", -- 次建筑：中继塔
+	obelisk = "aetherlink-obelisk", -- 主建筑：方尖碑
+	pylon = "aetherlink-pylon", -- 次建筑：中继塔
 }
 
 -- ============================================================================
@@ -36,8 +36,8 @@ Config.Names = {
 -- 在 control.lua 加载时，我们会把它注入到全局环境或传递给其他模块
 function Config.log(msg)
 	if Config.DEBUG then
-		-- 格式化输出：[SoulLink] <消息>
-		local formatted_msg = "[SoulLink] " .. tostring(msg)
+		-- 格式化输出：[AetherLink] <消息>
+		local formatted_msg = "[AetherLink] " .. tostring(msg)
 		log(formatted_msg)
 		if game then
 			game.print(formatted_msg)

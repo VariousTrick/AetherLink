@@ -8,4 +8,4 @@ local Config = require("scripts.config")
 require("scripts.main")
 
 -- 可以在这里打印一条日志确认加载成功
-Config.log("SoulLink 模组加载完毕 (Control Stage)。")
+Config.log("AetherLink 模组加载完毕 (Control Stage)。")

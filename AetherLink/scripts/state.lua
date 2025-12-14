@@ -41,10 +41,10 @@ function State.add_anchor(entity, type_name)
 
     -- [修改] 不再依赖 Config，直接使用硬编码的字符串进行比较
     local default_name
-    if type_name == "soullink-obelisk" then
+    if type_name == "aetherlink-obelisk" then
         default_name = entity.surface.name
     else
-        default_name = { "soullink-name.default-pylon", id }
+        default_name = { "aetherlink-name.default-pylon", id }
     end
 
     local data = {

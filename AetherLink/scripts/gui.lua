@@ -13,41 +13,41 @@ local players_to_refresh = {}
 -- 常量定义
 local NAMES = {
     frame = Config.Names.main_frame,
-    titlebar = "soullink_titlebar",
-    close_btn = "soullink_close_btn",
+    titlebar = "aetherlink_titlebar",
+    close_btn = "aetherlink_close_btn",
 
     -- [新增] 标题栏新按钮
-    pin_btn = "soullink_pin_btn",
-    search_btn = "soullink_search_btn",
-    search_textfield = "soullink_search_text",
+    pin_btn = "aetherlink_pin_btn",
+    search_btn = "aetherlink_search_btn",
+    search_textfield = "aetherlink_search_text",
 
     -- 容器
-    left_scroll = "soullink_left_scroll",
-    right_pane = "soullink_right_pane",
-    camera = "soullink_detail_camera",
+    left_scroll = "aetherlink_left_scroll",
+    right_pane = "aetherlink_right_pane",
+    camera = "aetherlink_detail_camera",
     -- info_flow 已删除，不再需要
 
     -- 改名窗口
-    rename_frame = "soullink_rename_frame",
-    rename_textfield = "soullink_rename_text",
-    rename_confirm = "soullink_rename_confirm",
+    rename_frame = "aetherlink_rename_frame",
+    rename_textfield = "aetherlink_rename_text",
+    rename_confirm = "aetherlink_rename_confirm",
 
     -- 动态前缀
-    btn_expand = "soullink_expand_",
-    btn_fav = "soullink_fav_",
-    btn_select = "soullink_sel_",
-    btn_edit = "soullink_edit_",
-    btn_gps = "soullink_gps_", -- [新增] GPS 按钮
-    btn_teleport = "soullink_tp_",
-    btn_fold = "soullink_fold_", -- [新增] 折叠按钮
+    btn_expand = "aetherlink_expand_",
+    btn_fav = "aetherlink_fav_",
+    btn_select = "aetherlink_sel_",
+    btn_edit = "aetherlink_edit_",
+    btn_gps = "aetherlink_gps_", -- [新增] GPS 按钮
+    btn_teleport = "aetherlink_tp_",
+    btn_fold = "aetherlink_fold_", -- [新增] 折叠按钮
 
     -- [保留] 之前讨论的排序抓手 (如果你之前删了，请加回来)
-    btn_move_anchor = "soullink_mv_anc_",
-    btn_move_surface = "soullink_mv_srf_",
+    btn_move_anchor = "aetherlink_mv_anc_",
+    btn_move_surface = "aetherlink_mv_srf_",
 
-    nav_scroll = "soullink_nav_scroll", -- 左侧导航栏容器名
-    btn_nav_item = "soullink_nav_item_", -- 导航按钮前缀
-    btn_nav_tp = "soullink_nav_tp_", -- 导航传送按钮前缀
+    nav_scroll = "aetherlink_nav_scroll", -- 左侧导航栏容器名
+    btn_nav_item = "aetherlink_nav_item_", -- 导航按钮前缀
+    btn_nav_tp = "aetherlink_nav_tp_", -- 导航传送按钮前缀
 }
 
 -- ============================================================================
@@ -151,7 +151,7 @@ local function update_nav_pane(frame, player, p_data)
             local anchors = State.get_list_by_surface(surface_index_for_tp)
             local main_anchor = nil
             for _, a in pairs(anchors) do
-                if a.type == "soullink-obelisk" then
+                if a.type == "aetherlink-obelisk" then
                     main_anchor = a
                     break
                 end
@@ -161,7 +161,7 @@ local function update_nav_pane(frame, player, p_data)
                 flow.add({
                     type = "sprite-button",
                     name = NAMES.btn_nav_tp .. main_anchor.id, -- 唯一名字
-                    sprite = "soullink-icon-teleport",
+                    sprite = "aetherlink-icon-teleport",
                     style = "frame_action_button",
                     style_mods = { width = 24, height = 24, margin = 0 },
                     tooltip = "传送至主塔",
@@ -218,7 +218,7 @@ local function add_table_row(table_elem, anchor, player_data)
 
     -- 1. 第一列：收藏按钮 (Star)
     local is_fav = player_data.favorites and player_data.favorites[anchor.id]
-    local fav_sprite = is_fav and "soullink-icon-star" or "soullink-icon-notstar"
+    local fav_sprite = is_fav and "aetherlink-icon-star" or "aetherlink-icon-notstar"
 
     table_elem.add({
         type = "sprite-button",
@@ -227,7 +227,7 @@ local function add_table_row(table_elem, anchor, player_data)
         style = icon_style, -- [修改] 使用原生小按钮样式
         style_mods = icon_mods,
         tags = { anchor_id = anchor.id },
-        tooltip = is_fav and { "gui.soullink-unfavorite" } or { "gui.soullink-favorite" },
+        tooltip = is_fav and { "gui.aetherlink-unfavorite" } or { "gui.aetherlink-favorite" },
     })
 
     -- 2. 第二列：名字 (Name)
@@ -285,11 +285,11 @@ local function add_table_row(table_elem, anchor, player_data)
         table_elem.add({
             type = "sprite-button",
             name = NAMES.btn_edit .. anchor.id,
-            sprite = "soullink-icon-rename",
+            sprite = "aetherlink-icon-rename",
             style = icon_style, -- [修改] 原生小按钮
             style_mods = icon_mods,
             tags = { anchor_id = anchor.id },
-            tooltip = { "gui.soullink-rename" },
+            tooltip = { "gui.aetherlink-rename" },
         })
     end
 
@@ -314,11 +314,11 @@ local function add_table_row(table_elem, anchor, player_data)
     table_elem.add({
         type = "sprite-button",
         name = NAMES.btn_teleport .. anchor.id,
-        sprite = "soullink-icon-teleport",
+        sprite = "aetherlink-icon-teleport",
         style = icon_style, -- [修改] 原生小按钮
         style_mods = icon_mods,
         tags = { anchor_id = anchor.id },
-        tooltip = { "gui.soullink-teleport" },
+        tooltip = { "gui.aetherlink-teleport" },
     })
 end
 local function update_list_view(frame, player)
@@ -368,8 +368,8 @@ local function update_list_view(frame, player)
         -- 4. 具体地表模式 (数字)
         elseif type(nav_selection) == "number" then
             if anchor.surface_index == nav_selection then
-                -- [关键] 在单地表模式下，隐藏主建筑 (soullink-obelisk)
-                if anchor.type ~= "soullink-obelisk" then
+                -- [关键] 在单地表模式下，隐藏主建筑 (aetherlink-obelisk)
+                if anchor.type ~= "aetherlink-obelisk" then
                     keep = true
                 end
             end
@@ -393,7 +393,7 @@ local function update_list_view(frame, player)
     table.sort(s_idxs)
 
     if #s_idxs == 0 then
-        scroll.add({ type = "label", caption = { "gui.soullink-no-anchors" }, style_mods = { font_color = { 0.5, 0.5, 0.5 } } })
+        scroll.add({ type = "label", caption = { "gui.aetherlink-no-anchors" }, style_mods = { font_color = { 0.5, 0.5, 0.5 } } })
         return
     end
 
@@ -453,7 +453,7 @@ function GUI.toggle_main_window(player)
         -- 2. 标题栏 (代码保持不变，含搜索、固定、关闭等)
         local titlebar = frame.add({ type = "flow", name = NAMES.titlebar, direction = "horizontal", style = "flib_titlebar_flow" })
         titlebar.drag_target = frame
-        titlebar.add({ type = "label", style = "frame_title", caption = { "gui-title.soullink-main" }, ignored_by_interaction = true })
+        titlebar.add({ type = "label", style = "frame_title", caption = { "gui-title.aetherlink-main" }, ignored_by_interaction = true })
         titlebar.add({ type = "empty-widget", style = "flib_titlebar_drag_handle", ignored_by_interaction = true })
 
         local p_data = State.get_player_data(player.index)
@@ -461,11 +461,11 @@ function GUI.toggle_main_window(player)
         -- 搜索框逻辑 (保持不变)
         local search_visible = p_data.show_search == true
         titlebar.add({ type = "textfield", name = NAMES.search_textfield, visible = search_visible, style_mods = { width = 100, top_margin = -2 } })
-        titlebar.add({ type = "sprite-button", name = NAMES.search_btn, style = "frame_action_button", sprite = "soullink-icon-search", tooltip = "搜索" })
+        titlebar.add({ type = "sprite-button", name = NAMES.search_btn, style = "frame_action_button", sprite = "aetherlink-icon-search", tooltip = "搜索" })
 
         -- 固定按钮 (保持不变)
         local pin_style = p_data.is_pinned and "flib_selected_frame_action_button" or "frame_action_button"
-        titlebar.add({ type = "sprite-button", name = NAMES.pin_btn, style = pin_style, sprite = "soullink-icon-pin", tooltip = "固定窗口" })
+        titlebar.add({ type = "sprite-button", name = NAMES.pin_btn, style = pin_style, sprite = "aetherlink-icon-pin", tooltip = "固定窗口" })
         titlebar.add({ type = "sprite-button", name = NAMES.close_btn, style = "frame_action_button", sprite = "utility/close" })
 
         -- ====================================================================
@@ -544,7 +544,7 @@ function GUI.toggle_main_window(player)
         if type(p_data.selected_nav) == "number" then
             local anchors = State.get_list_by_surface(p_data.selected_nav)
             for _, a in pairs(anchors) do
-                if a.type == "soullink-obelisk" then
+                if a.type == "aetherlink-obelisk" then
                     camera.position = a.position
                     camera.surface_index = a.surface_index
                     break
@@ -640,7 +640,7 @@ function GUI.handle_click(event)
             local anchors = State.get_list_by_surface(nav_id)
             -- 寻找主塔
             for _, a in pairs(anchors) do
-                if a.type == "soullink-obelisk" then
+                if a.type == "aetherlink-obelisk" then
                     -- 找到摄像头控件
                     local cam = find_element_by_name(frame, NAMES.camera)
                     if cam then
@@ -680,7 +680,7 @@ function GUI.handle_click(event)
                     GUI.close_window(player)
                 end
             else
-                player.print({ "gui.soullink-anchor-not-found" })
+                player.print({ "gui.aetherlink-anchor-not-found" })
             end
         end
         return
