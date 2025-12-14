@@ -24,7 +24,7 @@ local shortcut = {
 -- 3.1 方尖碑 (Obelisk) - 10x10
 local obelisk = table.deepcopy(data.raw["simple-entity-with-owner"]["simple-entity-with-owner"])
 obelisk.name = NAME_OBELISK
-obelisk.icon = "__AetherLink__/graphics/entity/icon/111.png" -- 后面记得换成你的 icon
+obelisk.icon = "__AetherLink__/graphics/icon/111.png" -- 后面记得换成你的 icon
 obelisk.icon_size = 64
 obelisk.flags = { "placeable-neutral", "placeable-player", "player-creation", "not-rotatable" }
 obelisk.minable = { mining_time = 5, result = NAME_OBELISK }
@@ -57,7 +57,7 @@ obelisk.render_layer = "object"
 -- 3.2 中继塔 (Pylon) - 4x4
 local pylon = table.deepcopy(data.raw["simple-entity-with-owner"]["simple-entity-with-owner"])
 pylon.name = NAME_PYLON
-pylon.icon = "__AetherLink__/graphics/entity/icon/22.png" -- 也可以暂时用实体图做图标，或者你有专门的icon
+pylon.icon = "__AetherLink__/graphics/icon/22.png" -- 也可以暂时用实体图做图标，或者你有专门的icon
 pylon.icon_size = 64 -- 注意：如果直接用大图做icon可能需要改这里，建议还是用专门的icon文件
 pylon.flags = { "placeable-neutral", "placeable-player", "player-creation" }
 pylon.minable = { mining_time = 1, result = NAME_PYLON }
