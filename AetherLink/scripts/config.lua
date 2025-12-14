@@ -10,7 +10,7 @@ local Config = {}
 
 -- 调试模式开关 (true: 开启打印 / false: 关闭)
 -- 建议发布时改为 false，开发时为 true
-Config.DEBUG = true
+Config.DEBUG = false
 
 -- ============================================================================
 -- 核心名称定义 (Prototype Names & GUI Names)
