@@ -1,15 +1,13 @@
 {
   "name": "AetherLink",
   "version": "0.0.2",
-  "title": "归魂碑 (Soul Link)",
-  "author": "Me",
+  "title": "以太网络 (Aether Link)",
+  "author": "Shaorou",
   "factorio_version": "2.0",
   "dependencies": [
     "base >= 2.0.0",
     "flib >= 0.13.0"
-],
+  ],
   "description": "建立方尖碑与中继塔，构建跨越地表的传送网络。受 FF14 以太之光启发。",
   "category": "utility"
 }
-
-
