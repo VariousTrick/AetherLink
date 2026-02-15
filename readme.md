@@ -1,3 +1,6 @@
+
+![Hearts](https://img.shields.io/badge/dynamic/json?url=https://mods.factorio.com/api/mods/RiftRail/full&query=$.followers_count&label=Hearts&color=ff69b4)
+
 ![Downloads](https://img.shields.io/badge/dynamic/json?url=https://mods.factorio.com/api/mods/RiftRail&query=$.downloads_count&label=Downloads&color=orange)
 ![Hearts](https://img.shields.io/badge/dynamic/json?url=https://mods.factorio.com/api/mods/RiftRail&query=$.followers_count&label=Hearts&color=ff69b4)
 
