@@ -145,7 +145,7 @@ local recipe_pylon = {
 local technology = {
     type = "technology",
     name = NAME_TECH,
-    icon_size = 256,
+    icon_size = 64,
     icon = "__AetherLink__/graphics/icon/shortcut.png",
     effects = {
         { type = "unlock-recipe", recipe = NAME_OBELISK },
